@@ -5,8 +5,6 @@ Please cite the above paper when using this module for your research.
 
 ## Installation
 
-[![Join the chat at https://gitter.im/LCAS/gazetool](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/LCAS/gazetool?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 Make sure you have the following dependencies available / installed:
 * QT5: http://www.qt.io/download/
 * opencv 2.x.x: http://opencv.org/downloads.html
