@@ -12,7 +12,7 @@ GLImageView::~GLImageView() {
 
 
 void GLImageView::initializeGL() {
-    qglClearColor(bgColor);
+    //qglClearColor(bgColor);
     glDisable(GL_DEPTH_TEST);
     glViewport(0, 0, this->width(), this->height());
     glMatrixMode(GL_PROJECTION);
