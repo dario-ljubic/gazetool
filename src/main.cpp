@@ -177,37 +177,45 @@ private:
 int main(int argc, char** argv) {
     qRegisterMetaType<GazeHypsPtr>();
     qRegisterMetaType<std::string>();
+
     WorkerThread gazer;
     QApplication app(argc, argv);
     GazerGui gui;
+
     //trying to write to cerr, cout, or throw an exception leads to deadlock in this function.
     //the reason is currently a mystery.
     //As a workaround a new thread is started. This does not make much sense but it works.
     OptionParser optparser(argc, argv, gazer, gui);
     optparser.start();
     optparser.wait();
+
     if (!optparser.options.count("novis")) gui.show();
+
     QThread thread;
     gazer.moveToThread(&thread); //this function can only "push" an object from the current thread to another thread,
                                  //it cannot "pull" an object from any arbitrary thread to the current thread.
 
     QObject::connect(&app, SIGNAL(lastWindowClosed()), &gazer, SLOT(stop()));
     QObject::connect(&gazer, SIGNAL(finished()), &thread, SLOT(quit()));
+
     if (!optparser.options.count("novis")) {
         QObject::connect(&gazer, SIGNAL(imageProcessed(GazeHypsPtr)), &gui,
                          SLOT(displayGazehyps(GazeHypsPtr)), Qt::QueuedConnection);
     }
+
     QObject::connect(&gazer, SIGNAL(statusmsg(std::string)), &gui, SLOT(setStatusmsg(std::string)));
     QObject::connect(&thread, SIGNAL(started()), &gazer, SLOT(process()));
     QObject::connect(&gui, SIGNAL(horizGazeToleranceChanged(double)), &gazer, SLOT(setHorizGazeTolerance(double)));
     QObject::connect(&gui, SIGNAL(verticalGazeToleranceChanged(double)), &gazer, SLOT(setVerticalGazeTolerance(double)));
     QObject::connect(&gui, SIGNAL(smoothingChanged(bool)), &gazer, SLOT(setSmoothing(bool)));
+
     if (!optparser.options.count("noquit")) {
         QObject::connect(&gazer, SIGNAL(finished()), &app, SLOT(quit()));
     }
 
     thread.start(); // begins execution of the thread
     app.exec(); // http://doc.qt.io/qt-5/qapplication.html#exec
+
     //process events after event loop terminates allowing unfinished threads to send signals
     while (thread.isRunning()) { // Returns true if the thread is running; otherwise returns false.
         thread.wait(10); // http://doc.qt.io/qt-4.8/qthread.html#wait

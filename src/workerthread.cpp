@@ -59,6 +59,7 @@ public:
         }
         counter++;
     }
+
     void printStats(GazeHypsPtr gazehyps) {
         if (gazehyps->frameCounter % 10 == 0)  {
             cerr << "fps: " << round(gazehyps->fps) << " | lat: " << round(gazehyps->latency)
@@ -208,6 +209,7 @@ static void tryLoadModel(T& learner, const string& filename) {
 }
 
 // The emit line emits the signal xy() from the object, with the new value as argument.
+
 void WorkerThread::process() {
     // stvaranje objekata razlicitih razreda uz slanje trainingParameters za konstruktor razreda kako bi se objekt inicijalizirao
     MutualGazeLearner glearner(trainingParameters);
@@ -215,18 +217,24 @@ void WorkerThread::process() {
     EyeLidLearner eoclearner(trainingParameters);
     RelativeEyeLidLearner rellearner(trainingParameters);
     VerticalGazeLearner vglearner(trainingParameters);
+
     // nakon sto su objekti stvoreni, ucitavaju se modeli preko predloska funkcije.
     tryLoadModel(glearner, classifyGaze);
     tryLoadModel(eoclearner, classifyLid);
     tryLoadModel(rglearner, estimateGaze);
     tryLoadModel(rellearner, estimateLid);
     tryLoadModel(vglearner, estimateVerticalGaze);
+
     emit statusmsg("Setting up detector threads...");
+
     std::unique_ptr<ImageProvider> imgProvider(getImageProvider());
+
     FaceDetectionWorker faceworker(std::move(imgProvider), threadcount);
     ShapeDetectionWorker shapeworker(faceworker.hypsqueue(), modelfile, max(1, threadcount/2));
     RegressionWorker regressionWorker(shapeworker.hypsqueue(), eoclearner, glearner, rglearner, rellearner, vglearner, max(1, threadcount));
+
     emit statusmsg("Detector threads started");
+
 #ifdef ENABLE_YARP_SUPPORT
     unique_ptr<YarpSender> yarpSender;
     if (inputType == "port") {
@@ -246,16 +254,21 @@ void WorkerThread::process() {
             cerr << "Warning: could not open " << dumpEstimates << endl;
         }
     }
+
     // stvara objekte razreda RlsSmoother koji se nalazi u rlssmoother.h
     RlsSmoother horizGazeSmoother;
     RlsSmoother vertGazeSmoother;
     RlsSmoother lidSmoother(5, 0.95, 0.09);
+
     emit statusmsg("Entering processing loop...");
     cerr << "Processing frames..." << endl;
+
     TemporalStats temporalStats; //objekt temporal stats definiran na vrhu ovog filea
+
     while(!shouldStop) {
 
         GazeHypsPtr gazehyps; // GazeHypsPtr je shared_ptr koji je definiran u gazehyps.h. Pokazuje na razred GazeHypList
+
         try {
             gazehyps = regressionWorker.hypsqueue().peek();
             gazehyps->waitready();
@@ -271,7 +284,9 @@ void WorkerThread::process() {
                 lidSmoother.smoothValue(ghyp.eyeLidClassification);
             }
             interpretHyp(ghyp);
+
             //cout << ghyp.isMutualGaze << endl; //dodano
+
             auto& pupils = ghyp.pupils;
             auto& faceparts = ghyp.faceParts;
             faceparts.draw(frame);
@@ -287,22 +302,30 @@ void WorkerThread::process() {
             if (!trainLidEstimator.empty()) rellearner.accumulate(ghyp);
             if (!trainVerticalGazeEstimator.empty()) vglearner.accumulate(ghyp);
         }
+
         temporalStats(gazehyps); // ovdje se racuna ono sto ispisuje na ekran, vraca ga gore u void operator ()
+
         dumpPpm(ppmout, frame);
         dumpEst(estimateout, gazehyps);
+
         if (showstats) temporalStats.printStats(gazehyps); // ispisivanje statistike
+
 #ifdef ENABLE_YARP_SUPPORT
         if (yarpSender) yarpSender->sendGazeHypotheses(gazehyps);
 #endif
         emit imageProcessed(gazehyps);
         QCoreApplication::processEvents();
+
         if (limitFps > 0) {
             usleep(1e6/limitFps);
         }
+
         regressionWorker.hypsqueue().pop();
     } // kraj whilea
+
     regressionWorker.hypsqueue().interrupt();
     regressionWorker.wait();
+
     cerr << "Frames processed..." << endl;
     if (glearner.sampleCount() > 0) {
         glearner.train(trainGaze);
@@ -319,6 +342,7 @@ void WorkerThread::process() {
     if (rellearner.sampleCount() > 0) {
         rellearner.train(trainLidEstimator);
     }
+
     emit finished();
     cerr << "Primary worker thread finished processing" << endl;
 }

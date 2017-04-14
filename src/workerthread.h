@@ -46,6 +46,7 @@ public:
     int threadcount = 6;
     int desiredFps = 0;
     cv::Size inputSize;
+
     // http://www.cplusplus.com/reference/string/string/ -> dokumentacija std::string razreda
     std::string inputType;
     std::string inputParam;
@@ -62,6 +63,7 @@ public:
     std::string estimateVerticalGaze;
     std::string estimateLid;
     std::string dumpEstimates;
+
     double limitFps = 0;
     double horizGazeTolerance = 5;
     double verticalGazeTolerance = 5;
@@ -70,6 +72,7 @@ public:
     TrainingParameters trainingParameters;
 
 // http://doc.qt.io/qt-4.8/signalsandslots.html
+
 signals:
     void finished();
     void imageProcessed(GazeHypsPtr gazehyps);
