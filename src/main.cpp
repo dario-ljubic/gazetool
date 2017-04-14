@@ -2,8 +2,8 @@
 #include <stdexcept>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
-#include <QApplication>
-#include <QThread>
+#include <QApplication> // The QApplication class manages the GUI application's control flow and main settings.
+#include <QThread> // The QThread class provides a platform-independent way to manage threads
 
 #include "workerthread.h"
 #include "gazergui.h"
@@ -188,7 +188,8 @@ int main(int argc, char** argv) {
     optparser.wait();
     if (!optparser.options.count("novis")) gui.show();
     QThread thread;
-    gazer.moveToThread(&thread);
+    gazer.moveToThread(&thread); //this function can only "push" an object from the current thread to another thread,
+                                 //it cannot "pull" an object from any arbitrary thread to the current thread.
 
     QObject::connect(&app, SIGNAL(lastWindowClosed()), &gazer, SLOT(stop()));
     QObject::connect(&gazer, SIGNAL(finished()), &thread, SLOT(quit()));
@@ -205,11 +206,11 @@ int main(int argc, char** argv) {
         QObject::connect(&gazer, SIGNAL(finished()), &app, SLOT(quit()));
     }
 
-    thread.start();
-    app.exec();
+    thread.start(); // begins execution of the thread
+    app.exec(); // http://doc.qt.io/qt-5/qapplication.html#exec
     //process events after event loop terminates allowing unfinished threads to send signals
-    while (thread.isRunning()) {
-        thread.wait(10);
-        QCoreApplication::processEvents();
+    while (thread.isRunning()) { // Returns true if the thread is running; otherwise returns false.
+        thread.wait(10); // http://doc.qt.io/qt-4.8/qthread.html#wait
+        QCoreApplication::processEvents(); // http://doc.qt.io/qt-5/qcoreapplication.html#processEvents
     }
 }

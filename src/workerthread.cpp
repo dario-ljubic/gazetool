@@ -43,6 +43,8 @@ public:
                       latency_acc(tag::rolling_window::window_size = accumulatorWindowSize),
                       starttime(std::chrono::system_clock::now())
     {}
+    // http://stackoverflow.com/questions/11857150/functionality-of-void-operator
+    // preopterecenje operatora ().
     void operator()(GazeHypsPtr gazehyps) {
         auto tnow = chrono::high_resolution_clock::now();
         auto mcs = chrono::duration_cast<std::chrono::microseconds> (tnow - starttime);
@@ -65,7 +67,8 @@ public:
     }
 };
 
-
+// Definicija konstruktora. Inicijalizira se QObject na parent i time zavrsava inicijalizacijska lista.
+// Tijelo konstruktora je prazno.
 WorkerThread::WorkerThread(QObject *parent) :
     QObject(parent)
 {
@@ -96,6 +99,9 @@ std::unique_ptr<ImageProvider> WorkerThread::getImageProvider() {
     return imgProvider;
 }
 
+// u definiciji razreda WorkerThread koji se nalazi u .h folderu navedeni su prototipi funkcija, a ovdje se koristene funkcije
+// definiraju. Kako imena funkcija nisu vidljiva izvan razreda, kod definiranja funkcije koristi se :: -> scope resolution operator
+// Takoder, ovdje se nalaze i definicije slotova!
 
 void WorkerThread::normalizeMat(const cv::Mat& in, cv::Mat& out) {
     cv::Scalar avg, sdv;
@@ -188,6 +194,9 @@ void WorkerThread::interpretHyp(GazeHyp& ghyp) {
     }
 }
 
+// predlozak funkcije. Parametar predloska predstavlja neki tip
+// static functions are functions that are only visible to other functions in the same file
+// (more precisely the same translation unit).
 template<typename T>
 static void tryLoadModel(T& learner, const string& filename) {
     try {
@@ -198,12 +207,15 @@ static void tryLoadModel(T& learner, const string& filename) {
     }
 }
 
+// The emit line emits the signal xy() from the object, with the new value as argument.
 void WorkerThread::process() {
+    // stvaranje objekata razlicitih razreda uz slanje trainingParameters za konstruktor razreda kako bi se objekt inicijalizirao
     MutualGazeLearner glearner(trainingParameters);
     RelativeGazeLearner rglearner(trainingParameters);
     EyeLidLearner eoclearner(trainingParameters);
     RelativeEyeLidLearner rellearner(trainingParameters);
     VerticalGazeLearner vglearner(trainingParameters);
+    // nakon sto su objekti stvoreni, ucitavaju se modeli preko predloska funkcije.
     tryLoadModel(glearner, classifyGaze);
     tryLoadModel(eoclearner, classifyLid);
     tryLoadModel(rglearner, estimateGaze);
@@ -234,14 +246,16 @@ void WorkerThread::process() {
             cerr << "Warning: could not open " << dumpEstimates << endl;
         }
     }
+    // stvara objekte razreda RlsSmoother koji se nalazi u rlssmoother.h
     RlsSmoother horizGazeSmoother;
     RlsSmoother vertGazeSmoother;
     RlsSmoother lidSmoother(5, 0.95, 0.09);
     emit statusmsg("Entering processing loop...");
     cerr << "Processing frames..." << endl;
-    TemporalStats temporalStats;
+    TemporalStats temporalStats; //objekt temporal stats definiran na vrhu ovog filea
     while(!shouldStop) {
-        GazeHypsPtr gazehyps;
+
+        GazeHypsPtr gazehyps; // GazeHypsPtr je shared_ptr koji je definiran u gazehyps.h. Pokazuje na razred GazeHypList
         try {
             gazehyps = regressionWorker.hypsqueue().peek();
             gazehyps->waitready();
@@ -257,6 +271,7 @@ void WorkerThread::process() {
                 lidSmoother.smoothValue(ghyp.eyeLidClassification);
             }
             interpretHyp(ghyp);
+            //cout << ghyp.isMutualGaze << endl; //dodano
             auto& pupils = ghyp.pupils;
             auto& faceparts = ghyp.faceParts;
             faceparts.draw(frame);
@@ -272,10 +287,10 @@ void WorkerThread::process() {
             if (!trainLidEstimator.empty()) rellearner.accumulate(ghyp);
             if (!trainVerticalGazeEstimator.empty()) vglearner.accumulate(ghyp);
         }
-        temporalStats(gazehyps);
+        temporalStats(gazehyps); // ovdje se racuna ono sto ispisuje na ekran, vraca ga gore u void operator ()
         dumpPpm(ppmout, frame);
         dumpEst(estimateout, gazehyps);
-        if (showstats) temporalStats.printStats(gazehyps);
+        if (showstats) temporalStats.printStats(gazehyps); // ispisivanje statistike
 #ifdef ENABLE_YARP_SUPPORT
         if (yarpSender) yarpSender->sendGazeHypotheses(gazehyps);
 #endif
@@ -285,7 +300,7 @@ void WorkerThread::process() {
             usleep(1e6/limitFps);
         }
         regressionWorker.hypsqueue().pop();
-    }
+    } // kraj whilea
     regressionWorker.hypsqueue().interrupt();
     regressionWorker.wait();
     cerr << "Frames processed..." << endl;
