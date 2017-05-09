@@ -1,12 +1,15 @@
 #include <iostream>
 #include <stdexcept>
+
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
-#include <QApplication> // The QApplication class manages the GUI application's control flow and main settings.
-#include <QThread> // The QThread class provides a platform-independent way to manage threads
+#include <QApplication>
+#include <QThread>
 
 #include "workerthread.h"
 #include "gazergui.h"
+
+#include "ros/ros.h"
 
 using namespace std;
 
@@ -80,6 +83,7 @@ private:
                 ("streamppm", po::value<string>(), "stream ppm files to arg. e.g. "
                                                    ">(ffmpeg -f image2pipe -vcodec ppm -r 30 -i - -r 30 -preset ultrafast out.mp4)")
                 ("dump-estimates", po::value<string>(), "dump estimated values to file")
+                ("publish", po::value<string>(), "publish estimated values to a ros topic")
                 ("mirror", "mirror output");
         po::options_description inputops("input options");
         inputops.add_options()
@@ -89,6 +93,7 @@ private:
                 ("port,p", po::value<string>(), "expect image on yarp port arg")
                 ("batch,b", po::value<string>(), "batch process image filenames from arg")
                 ("size", po::value<string>(), "request image size arg and scale if required")
+                ("subscribe", po::value<string>(), "subscribe to a ros topic to receive images")
                 ("fps", po::value<int>(), "request video with arg frames per second");
         po::options_description classifyopts("classification options");
         classifyopts.add_options()
@@ -119,7 +124,7 @@ private:
                 std::exit(0);
             }
             po::notify(options);
-            for (const auto& s : { "camera", "image", "video", "port", "batch"}) {
+            for (const auto& s : { "camera", "image", "video", "port", "batch", "subscribe"}) {
                 if (options.count(s)) {
                     if (worker.inputType.empty()) {
                         worker.inputParam = options[s].as<string>();
@@ -157,6 +162,7 @@ private:
             copyCheckArg("dump-estimates", worker.dumpEstimates);
             copyCheckArg("horizontal-gaze-tolerance", worker.horizGazeTolerance);
             copyCheckArg("vertical-gaze-tolerance", worker.verticalGazeTolerance);
+            copyCheckArg("publish", worker.rosTopicPub);
             if (options.count("quiet")) worker.showstats = false;
             gui.setHorizGazeTolerance(worker.horizGazeTolerance);
             gui.setVerticalGazeTolerance(worker.verticalGazeTolerance);
@@ -213,12 +219,21 @@ int main(int argc, char** argv) {
         QObject::connect(&gazer, SIGNAL(finished()), &app, SLOT(quit()));
     }
 
-    thread.start(); // begins execution of the thread
-    app.exec(); // http://doc.qt.io/qt-5/qapplication.html#exec
+    if (optparser.options.count("publish") || optparser.options.count("subscribe")) {
+        //todo: see is it necessary to have two nodes
+        ros::init(argc, argv, "gazetool");
+    }
+
+//    if (optparser.options.count("subscribe")) {
+//        ros::init(argc, argv, gazer.inputParam);
+//    }
+
+    thread.start();
+    app.exec();
 
     //process events after event loop terminates allowing unfinished threads to send signals
-    while (thread.isRunning()) { // Returns true if the thread is running; otherwise returns false.
-        thread.wait(10); // http://doc.qt.io/qt-4.8/qthread.html#wait
-        QCoreApplication::processEvents(); // http://doc.qt.io/qt-5/qcoreapplication.html#processEvents
+    while (thread.isRunning()) {
+        thread.wait(10);
+        QCoreApplication::processEvents();
     }
 }

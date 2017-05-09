@@ -21,6 +21,7 @@ SET(GAZETOOL_SRC
     featureextractor.cpp
     abstractlearner.cpp
     rlssmoother.cpp
+	rossupport.cpp
     ${UI_HEADERS}
     blockingqueue.h
 )
@@ -33,7 +34,7 @@ ENDIF()
 
 ADD_EXECUTABLE(gazetool ${GAZETOOL_SRC})
 ADD_DEPENDENCIES(gazetool ${UI_HEADERS})
-TARGET_LINK_LIBRARIES(gazetool dlib GL ${Boost_LIBRARIES} ${YARP_LIBRARIES} ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(gazetool dlib GL ${Boost_LIBRARIES} ${YARP_LIBRARIES} ${OpenCV_LIBS} ${catkin_LIBRARIES})
 qt5_use_modules(gazetool Core Widgets Gui OpenGL)
 
 INSTALL(TARGETS gazetool

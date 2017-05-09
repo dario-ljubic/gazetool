@@ -1,7 +1,9 @@
-build
-CMakeCache.txt
-CMakeFiles
-Makefile
-cmake_install.cmake
-install_manifest.txt
+dlib
+include
+#CMakeCache.txt
+#CMakeFiles
+#Makefile
+#cmake_install.cmake
+#install_manifest.txt
 data/shape_predictor_68_face_landmarks.dat
+build
