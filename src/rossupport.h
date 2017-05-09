@@ -4,7 +4,7 @@
 
 #include "ros/ros.h"
 #include "gazehyps.h"
-#include "gaze_test/GazeHyps.h"
+#include "gazetool/GazeHyps.h"
 #include "std_msgs/String.h"
 
 #include "imageprovider.h"
@@ -32,7 +32,7 @@ public:
 class RosPublisher {
 
 private:
-    gaze_test::GazeHyps msg;
+    gazetool::GazeHyps msg;
     ros::Publisher pub;
 
 public:

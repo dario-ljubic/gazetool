@@ -50,7 +50,7 @@ RosPublisher::RosPublisher(){
 
 RosPublisher::RosPublisher(std::string rosTopicPub) {
     ros::NodeHandle nh;
-    pub = nh.advertise<gaze_test::GazeHyps>(rosTopicPub, 10);
+    pub = nh.advertise<gazetool::GazeHyps>(rosTopicPub, 10);
 }
 
 void RosPublisher::publishGazeHypotheses(GazeHypsPtr gazehyps) {
