@@ -7,3 +7,4 @@ dlib
 #install_manifest.txt
 data/shape_predictor_68_face_landmarks.dat
 build
+log
