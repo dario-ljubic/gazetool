@@ -20,7 +20,7 @@ private:
     cv_bridge::CvImagePtr cvImagePtr;
 
 public:
-    RosSubscriber();
+    RosSubscriber(std::string subsTopic);
     void Callback(const sensor_msgs::ImageConstPtr& msg);
 
     virtual bool get(cv::Mat& frame);

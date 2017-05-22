@@ -1,8 +1,8 @@
 #include "rossupport.h"
 
-RosSubscriber::RosSubscriber() : it(nh)
+RosSubscriber::RosSubscriber(std::string subsTopic) : it(nh)
 {
-    sub = it.subscribe("camera/image", 1, &RosSubscriber::Callback, this);
+    sub = it.subscribe(subsTopic, 1, &RosSubscriber::Callback, this);
 }
 
 void RosSubscriber::Callback(const sensor_msgs::ImageConstPtr& msg)
@@ -21,7 +21,7 @@ void RosSubscriber::Callback(const sensor_msgs::ImageConstPtr& msg)
 bool RosSubscriber::get(cv::Mat& frame){
     //todo:add some conditions if the topic is not created etc. (like in yarpsupport)
     ros::spinOnce();
-    if (cvImagePtr && ros::ok()) { // todo: test if this causes any problems with running gazetool
+    if (cvImagePtr && ros::ok()) { // todo: test if this causes any problems with running gazetool (cvImagePtr && ros::ok())
         cv::Mat rgbframe(cvImagePtr->image);
         frame = rgbframe.clone();
         return true;

@@ -95,7 +95,7 @@ std::unique_ptr<ImageProvider> WorkerThread::getImageProvider() {
     }
     // todo: enable user to set inputSize like in the CvVideoImageProvider
     else if (inputType == "subscribe") {
-        imgProvider.reset(new RosSubscriber);
+        imgProvider.reset(new RosSubscriber(inputParam));
     }
     else {
         throw runtime_error("invalid input type " + inputType);
