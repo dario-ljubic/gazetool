@@ -70,6 +70,7 @@ ENDIF()
 add_message_files(
   FILES
   GazeHyps.msg
+  GazeInfo.msg	
 )
 
 ## Generate services in the 'srv' folder
@@ -125,7 +126,8 @@ catkin_package(
 	INCLUDE_DIRS # include
 	LIBRARIES # gazetool
 	CATKIN_DEPENDS message_runtime roscpp std_msgs image_transport cv_bridge
- 	DEPENDS system_lib OpenCV Boost Qt5Core Qt5Widgets Qt5OpenGL Qt5Gui
+ 	#DEPENDS system_lib OpenCV Boost Qt5Core Qt5Widgets Qt5OpenGL Qt5Gui
+ 	DEPENDS OpenCV Boost Qt5Core Qt5Widgets Qt5OpenGL Qt5Gui
 )
 
 ###########

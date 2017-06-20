@@ -83,7 +83,7 @@ private:
                 ("streamppm", po::value<string>(), "stream ppm files to arg. e.g. "
                                                    ">(ffmpeg -f image2pipe -vcodec ppm -r 30 -i - -r 30 -preset ultrafast out.mp4)")
                 ("dump-estimates", po::value<string>(), "dump estimated values to file")
-                ("publish", po::value<string>(), "publish estimated values to a ros topic")
+                ("publish", po::value<string>(), "publish estimated values and additional information to ros topics")
                 ("mirror", "mirror output");
         po::options_description inputops("input options");
         inputops.add_options()

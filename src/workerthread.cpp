@@ -304,8 +304,10 @@ void WorkerThread::process() {
 
         if (showstats) temporalStats.printStats(gazehyps);
 
-        if (rospub) publisher.publishGazeHypotheses(gazehyps);
-
+        if (rospub) {
+            publisher.publishGazeHypotheses(gazehyps);
+            publisher.publishAdditionalInformation(horizGazeTolerance, verticalGazeTolerance);
+        }
 #ifdef ENABLE_YARP_SUPPORT
         if (yarpSender) yarpSender->sendGazeHypotheses(gazehyps);
 #endif

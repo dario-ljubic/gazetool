@@ -5,6 +5,7 @@
 #include "ros/ros.h"
 #include "gazehyps.h"
 #include "gazetool/GazeHyps.h"
+#include "gazetool/GazeInfo.h"
 #include "std_msgs/String.h"
 
 #include "imageprovider.h"
@@ -32,13 +33,17 @@ public:
 class RosPublisher {
 
 private:
-    gazetool::GazeHyps msg;
-    ros::Publisher pub;
+    gazetool::GazeHyps msgGaze;
+    ros::Publisher gazePub;
+    
+    gazetool::GazeInfo msgInfo;
+    ros::Publisher infoPub;
 
 public:
     RosPublisher();
     RosPublisher(std::string rosTopicPub);
     void publishGazeHypotheses(GazeHypsPtr gazehyps);
+    void publishAdditionalInformation(double horizGazeTolerance, double verticalGazeTolerance);
     ~RosPublisher();
 
 };
