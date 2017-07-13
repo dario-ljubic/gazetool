@@ -6,7 +6,7 @@ RlsSmoother::RlsSmoother(double windowSize, double forgetting, double cost)
 
 }
 
-RlsSmoother::RlsSmoother() : rls(30, 0.99, 0.000005)
+RlsSmoother::RlsSmoother() : rls(30, 0.99, 0.00005)
 {
 
 }
