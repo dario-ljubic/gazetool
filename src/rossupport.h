@@ -19,6 +19,7 @@ private:
     image_transport::ImageTransport it;
     image_transport::Subscriber sub;
     cv_bridge::CvImagePtr cvImagePtr;
+    bool initializationDone = false;
 
 public:
     RosSubscriber(std::string subsTopic);

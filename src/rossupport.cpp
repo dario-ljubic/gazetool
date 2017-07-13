@@ -19,11 +19,20 @@ void RosSubscriber::Callback(const sensor_msgs::ImageConstPtr& msg)
   }
 
 bool RosSubscriber::get(cv::Mat& frame){
-    //todo:add some conditions if the topic is not created etc. (like in yarpsupport)
-    // na pocetku, vrti ga vise puta dok ne dobijem pointer. Znaci samo u while pukni spinOnce pa kad se zalaufa onda ce biti dobro dalje
-    ros::spinOnce();
-    //if (cvImagePtr) ROS_ERROR("cvImagePtr!");
-    if (cvImagePtr && ros::ok()) { // TODO: test if this causes any problems with running gazetool (cvImagePtr && ros::ok())
+    //TODO:add some conditions if the topic is not created etc. (like in yarpsupport)
+    
+    // in the beginning, it may take some time for the Gazetool and image provider to connect, so this initialization step is done
+    // where waiting for the first message is implemented.
+    if (initializationDone) ros::spinOnce();
+    else {
+        while (cvImagePtr == NULL) {
+            ros::spinOnce();
+            ROS_INFO("Waiting to receive the first image!");
+        }
+        initializationDone = true;
+    }
+
+    if (cvImagePtr && ros::ok()) {
         cv::Mat rgbframe(cvImagePtr->image);
         frame = rgbframe.clone();
         return true;
@@ -52,8 +61,8 @@ RosPublisher::RosPublisher(){
 
 RosPublisher::RosPublisher(std::string rosTopicPub) {
     ros::NodeHandle nh;
-    gazePub = nh.advertise<gazetool::GazeHyps>(rosTopicPub, 50); // under assumption that the gazetool is taking ~20 fps, hold the last 2.5 sec
-    infoPub = nh.advertise<gazetool::GazeInfo>("additionalGazetoolInformation", 50);
+    gazePub = nh.advertise<gazetool::GazeHyps>(rosTopicPub, 1);
+    infoPub = nh.advertise<gazetool::GazeInfo>("additionalGazetoolInformation", 1);
     
 }
 
@@ -72,7 +81,7 @@ void RosPublisher::publishGazeHypotheses(GazeHypsPtr gazehyps) {
 //    msgGaze.header.stamp = ; //time
 //    msgGaze.header.frame_id = ; //string
 
-    double lid = std::nan("not set"); //todo: find a default number instead of nan!
+    double lid = std::nan("not set");
     double horest = std::nan("not set");
     double vertest = std::nan("not set");
     bool mutgaze = false;
